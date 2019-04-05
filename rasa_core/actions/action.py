@@ -142,7 +142,7 @@ class UtterAction(Action):
         """Simple run implementation uttering a (hopefully defined) template."""
 
         dispatcher.utter_template(self.name(),
-                                  tracker)
+                                  tracker, domain)
         return []
 
     def name(self):
@@ -283,7 +283,6 @@ class RemoteAction(Action):
 
         Uses the normal dispatcher to utter the responses from the action
         endpoint."""
-
         for response in responses:
             if "template" in response:
                 kwargs = response.copy()
@@ -307,7 +306,7 @@ class RemoteAction(Action):
                 del response["buttons"]
 
             draft.update(response)
-            dispatcher.utter_response(draft)
+            dispatcher.utter_response(draft, tracker = tracker)
 
     def run(self, dispatcher, tracker, domain):
         json = self._action_call_format(tracker, domain)

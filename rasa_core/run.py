@@ -173,6 +173,7 @@ def start_server(input_channels,
         utils.list_routes(app)
 
     http_server = WSGIServer(('0.0.0.0', port), app)
+    logger.info("~~~~~~~~~~~~~~~~~~~This is my personal rasa core rendition.~~~~~~~~~~~~~~~~~~~~~~~~\n")
     logger.info("Rasa Core server is up and running on "
                 "{}".format(constants.DEFAULT_SERVER_FORMAT.format(port)))
     http_server.start()

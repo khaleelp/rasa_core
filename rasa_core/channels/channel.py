@@ -149,10 +149,10 @@ class OutputChannel(object):
         """Every output channel needs a name to identify it."""
         return cls.__name__
 
-    def send_response(self, recipient_id, message):
-        # type: (Text, Dict[Text, Any]) -> None
+    def send_response(self, recipient_id, message, tracker = None, domain = None):
+        # type: (...) -> None
         """Send a message to the client."""
-
+        print("\n************ payas send response **********\n")
         if message.get("elements"):
             self.send_custom_message(recipient_id, message.get("elements"))
 
@@ -162,7 +162,7 @@ class OutputChannel(object):
                                         message.get("buttons"))
         elif message.get("text"):
             self.send_text_message(recipient_id,
-                                   message.get("text"))
+                                   message.get("text"), tracker = tracker, domain = domain)
 
         # if there is an image we handle it separately as an attachment
         if message.get("image"):
@@ -171,8 +171,8 @@ class OutputChannel(object):
         if message.get("attachment"):
             self.send_attachment(recipient_id, message.get("attachment"))
 
-    def send_text_message(self, recipient_id, message):
-        # type: (Text, Text) -> None
+    def send_text_message(self, recipient_id, message, tracker = None, domain = None):
+        # type: (...) -> None
         """Send a message through this channel."""
 
         raise NotImplementedError("Output channel needs to implement a send "
@@ -181,13 +181,13 @@ class OutputChannel(object):
     def send_image_url(self, recipient_id, image_url):
         # type: (Text, Text) -> None
         """Sends an image. Default will just post the url as a string."""
-
+        print("\n************ payas url send image**********\n")
         self.send_text_message(recipient_id, "Image: {}".format(image_url))
 
     def send_attachment(self, recipient_id, attachment):
         # type: (Text, Text) -> None
         """Sends an attachment. Default will just post as a string."""
-
+        print("\n************ payas url attachment**********\n")
         self.send_text_message(recipient_id,
                                "Attachment: {}".format(attachment))
 
@@ -196,7 +196,7 @@ class OutputChannel(object):
         """Sends buttons to the output.
 
         Default implementation will just post the buttons as a string."""
-
+        print("\n************ payas buttons**********\n")
         self.send_text_message(recipient_id, message)
         for idx, button in enumerate(buttons):
             button_msg = button_to_string(button, idx)
@@ -233,15 +233,27 @@ class CollectingOutputChannel(OutputChannel):
                  text=None,
                  image=None,
                  buttons=None,
-                 attachment=None):
+                 attachment=None,
+                 tracker = None,
+                 domain = None):
         """Create a message object that will be stored."""
-
+        print("SHIVAM TRACKER TYPE ",type(tracker.slots))
+        print("SHIVAM DOMAIN.SLOTS TYPE ",type(domain.slots[0]))
         obj = {
             "recipient_id": recipient_id,
             "text": text,
             "image": image,
             "buttons": buttons,
-            "attachment": attachment
+            "attachment": attachment,
+            "tracker_stuff" : {
+
+            },
+            "domain_stuff": {
+                "entities": domain.entities,
+                "slots" : {
+                    domain.slots[0].name : domain.slots[0].value
+                }
+            }
         }
 
         # filter out any values that are `None`
@@ -256,10 +268,12 @@ class CollectingOutputChannel(OutputChannel):
     def _persist_message(self, message):
         self.messages.append(message)
 
-    def send_text_message(self, recipient_id, message):
+    def send_text_message(self, recipient_id, message, tracker = None, domain = None):
         for message_part in message.split("\n\n"):
-            self._persist_message(self._message(recipient_id,
-                                                text=message_part))
+            a = self._message(recipient_id,text=message_part, tracker=tracker, domain=domain)
+            print("~~~~~~~~~~~~~~~~~~~~Hdjdsds~~~~~~~~~`")
+            print(a)
+            self._persist_message(a)
 
     def send_text_with_buttons(self, recipient_id, message, buttons, **kwargs):
         self._persist_message(self._message(recipient_id,

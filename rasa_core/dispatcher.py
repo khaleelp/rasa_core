@@ -31,7 +31,7 @@ class Element(dict):
 
 
 # Makes a named tuple with entries text and data
-BotMessage = namedtuple("BotMessage", "text data")
+BotMessage = namedtuple("BotMessage", "text data metadata")
 
 
 class Button(dict):
@@ -49,17 +49,20 @@ class Dispatcher(object):
         self.nlg = nlg
         self.latest_bot_messages = []
 
-    def utter_response(self, message):
+    def utter_response(self, message, tracker = None, domain = None):
         # type: (Dict[Text, Any]) -> None
         """Send a message to the client."""
 
         bot_message = BotMessage(text=message.get("text"),
                                  data={"elements": message.get("elements"),
                                        "buttons": message.get("buttons"),
-                                       "attachment": message.get("image")})
-
+                                       "attachment": message.get("image")},
+                                 metadata=message.get("domain_stuff"))
+        print("~~~~~~~~~~~~~~~~~~~Bleh~~~~~~~~~~~")
+        print(bot_message.metadata)
+        print(message)
         self.latest_bot_messages.append(bot_message)
-        self.output_channel.send_response(self.sender_id, message)
+        self.output_channel.send_response(self.sender_id, message, tracker = tracker, domain = domain)
 
     def utter_message(self, text):
         # type: (Text) -> None
@@ -124,17 +127,36 @@ class Dispatcher(object):
             message["buttons"] = buttons
         else:
             message["buttons"].extend(buttons)
-        self.utter_response(message)
+        self.utter_response(message, tracker = tracker)
 
     def utter_template(self,
                        template,  # type: Text
                        tracker,  # type: DialogueStateTracker
+                       domain = None,
                        silent_fail=False,  # type: bool
                        **kwargs  # type: Any
                        ):
         # type: (...) -> None
         """"Send a message to the client based on a template."""
-
+        print("~~~~~~~~~~~~~~~Something~~~~~~~~~~~~~~~")
+        print(domain.action_names)
+        print({"entities" : domain.entities})
+        print(domain.intent_properties)
+        print(domain.form_names)
+        print({"slots" : domain.slots})
+        print(domain.restart_intent)
+        print(domain.store_entities_as_slots)
+        print(domain.templates)
+        print(domain.user_actions)
+        print(tracker.slots)
+        print(tracker.events)
+        print(tracker.active_form)
+        print(tracker.latest_action_name)
+        print(tracker.followup_action)
+        print(tracker.sender_id)
+        print(tracker.latest_bot_utterance)
+        print(tracker.latest_message)
+        print("~~~~~~~~~~~~~~~SomethingENDS~~~~~~~~~~~~~~~")
         message = self._generate_response(template,
                                           tracker,
                                           silent_fail,
@@ -143,7 +165,7 @@ class Dispatcher(object):
         if not message:
             return
 
-        self.utter_response(message)
+        self.utter_response(message, tracker = tracker, domain = domain)
 
     def _generate_response(
         self,

@@ -364,6 +364,7 @@ class MessageProcessor(object):
 
         self._log_action_on_tracker(tracker, action.name(), events, policy,
                                     confidence)
+
         self.log_bot_utterances_on_tracker(tracker, dispatcher)
         self._schedule_reminders(events, dispatcher)
 
@@ -403,7 +404,8 @@ class MessageProcessor(object):
 
         if dispatcher.latest_bot_messages:
             for m in dispatcher.latest_bot_messages:
-                bot_utterance = BotUttered(text=m.text, data=m.data)
+                logger.debug("~~~~~~~~~~~~~~m stuff  '{}'".format(m))
+                bot_utterance = BotUttered(text=m.text, data=m.data, metadata=m.metadata)
                 logger.debug("Bot utterance '{}'".format(bot_utterance))
                 tracker.update(bot_utterance)
 

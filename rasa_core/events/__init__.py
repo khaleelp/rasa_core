@@ -286,9 +286,10 @@ class BotUttered(Event):
 
     type_name = "bot"
 
-    def __init__(self, text=None, data=None, timestamp=None):
+    def __init__(self, text=None, data=None, timestamp=None, metadata = None):
         self.text = text
         self.data = data
+        self.metadata = metadata
         super(BotUttered, self).__init__(timestamp)
 
     def __hash__(self):
@@ -302,8 +303,8 @@ class BotUttered(Event):
                    (other.text, jsonpickle.encode(other.data))
 
     def __str__(self):
-        return ("BotUttered(text: {}, data: {})"
-                "".format(self.text, json.dumps(self.data, indent=2)))
+        return ("BotUttered(text: {}, data: {}, metadata: {})"
+                "".format(self.text, json.dumps(self.data, indent=2), json.dumps(self.metadata, indent= 2)))
 
     def apply_to(self, tracker):
         # type: (DialogueStateTracker) -> None
@@ -322,6 +323,7 @@ class BotUttered(Event):
         d.update({
             "text": self.text,
             "data": self.data,
+            "metadata": self.metadata
         })
         return d
 
@@ -330,7 +332,8 @@ class BotUttered(Event):
         try:
             return BotUttered(parameters.get("text"),
                               parameters.get("data"),
-                              parameters.get("timestamp"))
+                              parameters.get("timestamp"),
+                              parameters.get("metadata"))
         except KeyError as e:
             raise ValueError("Failed to parse bot uttered event. {}".format(e))
 
